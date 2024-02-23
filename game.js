@@ -148,40 +148,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 터치 시작 이벤트
   canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault(); // 기본 터치 이벤트 방지
       if (canJump) {
           isDragging = true;
-          let touch = e.touches[0]; // 첫 번째 터치 이벤트
+          const touch = e.touches[0]; // 첫 번째 터치 포인트
           startPoint = { x: touch.clientX - canvas.offsetLeft, y: touch.clientY - canvas.offsetTop };
-          endPoint = startPoint;
+          endPoint = startPoint; // 초기화
+          e.preventDefault(); // 기본 터치 이벤트 방지
       }
   }, { passive: false });
   
   // 터치 이동 이벤트
   canvas.addEventListener('touchmove', (e) => {
-      e.preventDefault(); // 스크롤 등 기본 이벤트 방지
       if (isDragging && canJump) {
-          let touch = e.touches[0]; // 첫 번째 터치 포인트
+          const touch = e.touches[0]; // 첫 번째 터치 포인트
           endPoint = { x: touch.clientX - canvas.offsetLeft, y: touch.clientY - canvas.offsetTop };
+          e.preventDefault(); // 기본 스크롤 등의 행동 방지
       }
   }, { passive: false });
   
+  // 터치 종료 이벤트
   canvas.addEventListener('touchend', (e) => {
       if (isDragging && canJump) {
           isDragging = false;
           let dx = endPoint.x - startPoint.x;
-          // 아래로 드래그한 거리를 양수로 계산
-          let dy = startPoint.y - endPoint.y; // 아래로 드래그 시 양수 값, 위로 점프
+          let dy = endPoint.y - startPoint.y;
   
-          if (dy > 0) { // 아래로 드래그 (점프 조건)
-              let dragDistance = Math.sqrt(dx * dx + dy * dy);
-              if (dragDistance > 5) {
-                  let jumpPower = Math.min(dragDistance / 10, 30); // 점프 파워 제한
-                  player.velocityX = dx / dragDistance * jumpPower;
-                  player.velocityY = -Math.abs(dy / dragDistance) * jumpPower; // 항상 위로 점프
+          if (dy < 0) {
+              return; // 아래로 드래그하는 경우, 여기서 함수 실행을 중단
+          }
   
-                  canJump = false; // 점프 후 재점프 불가능 상태로 설정
-              }
+          let dragDistance = Math.sqrt(dx * dx + dy * dy);
+          if (dragDistance > 5) {
+              let jumpPower = Math.min(dragDistance / 10, 20);
+              player.velocityX = -dx / dragDistance * jumpPower;
+              player.velocityY = -Math.abs(dy / dragDistance) * jumpPower;
+              canJump = false;
           }
       }
   });
