@@ -146,47 +146,43 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fill();
   }
 
-  // Event handlers
-  canvas.addEventListener('mousedown', (e) => {
-    if (canJump) {
-      isDragging = true;
-      startPoint = { x: e.clientX - canvas.offsetLeft, y: e.clientY - canvas.offsetTop };
-      endPoint = startPoint; // 초기화 시 같은 위치로 설정하여 클릭 판정 준비
-    }
-  });
-
-  canvas.addEventListener('mousemove', (e) => {
-    if (isDragging && canJump) {
-      endPoint = { x: e.clientX - canvas.offsetLeft, y: e.clientY - canvas.offsetTop };
-    }
-  });
-
-  canvas.addEventListener('mouseup', (e) => {
-    if (isDragging && canJump) {
-      isDragging = false;
-      let dx = endPoint.x - startPoint.x;
-      // 화면 좌표계 기준으로 아래로 드래그한 거리를 양수로 계산
-      let dy = endPoint.y - startPoint.y;
-  
-      // 드래그 방향이 아래로 향하는 경우 점프와 화살표 그리기를 실행하지 않음
-      if (dy < 0) {
-        return; // 아래로 드래그하는 경우, 여기서 함수 실행을 중단
+  // 터치 시작 이벤트
+  canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault(); // 기본 터치 이벤트 방지
+      if (canJump) {
+          isDragging = true;
+          let touch = e.touches[0]; // 첫 번째 터치 이벤트
+          startPoint = { x: touch.clientX - canvas.offsetLeft, y: touch.clientY - canvas.offsetTop };
+          endPoint = startPoint;
       }
+  }, { passive: false });
   
-      // 실제 드래그 거리 계산
-      let dragDistance = Math.sqrt(dx * dx + dy * dy);
-      // 드래그 거리가 충분히 크다고 판단되는 최소값 설정
-      let minDragDistance = 5;
-
-      if (dragDistance > minDragDistance) {
-        // 점프 파워 및 방향 계산, y축 이동은 위로 점프하기 위해 음수로 계산
-        let jumpPower = Math.min(dragDistance / 10, 20); // 점프 파워 제한
-        player.velocityX = -dx / dragDistance * jumpPower;
-        player.velocityY = -Math.abs(dy / dragDistance) * jumpPower; // 항상 위로 점프
-  
-        canJump = false; // 점프 후에는 재점프 불가능 상태로 설정
+  // 터치 이동 이벤트
+  canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault(); // 스크롤 등 기본 이벤트 방지
+      if (isDragging && canJump) {
+          let touch = e.touches[0]; // 첫 번째 터치 포인트
+          endPoint = { x: touch.clientX - canvas.offsetLeft, y: touch.clientY - canvas.offsetTop };
       }
-    }
+  }, { passive: false });
+  
+  // 터치 종료 이벤트
+  canvas.addEventListener('touchend', (e) => {
+      if (isDragging && canJump) {
+          isDragging = false;
+          let dx = endPoint.x - startPoint.x;
+          let dy = endPoint.y - startPoint.y;
+          
+          if (dy < 0) { // 위로 드래그 (점프 조건)
+              let dragDistance = Math.sqrt(dx * dx + dy * dy);
+              if (dragDistance > 5) {
+                  let jumpPower = Math.min(dragDistance / 10, 30); // 점프 파워 제한
+                  player.velocityX = dx / dragDistance * jumpPower;
+                  player.velocityY = dy / dragDistance * jumpPower; // 점프 방향 계산
+                  canJump = false;
+              }
+          }
+      }
   });
 
   gameLoop();
