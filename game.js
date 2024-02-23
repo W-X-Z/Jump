@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let playTime = 0;
   let startTime = Date.now()
 
+  let clearLineHeight = 240; // 캔버스 상단에서 100px 아래에 클리어 선을 설정
+
   let platforms = [
     {x: 100, y: 1120, width: 100, height: 80},
     {x: 200, y: 1030, width: 150, height: 20},
@@ -29,7 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     {x: 300, y: 400, width: 20, height: 20},
     {x: 400, y: 460, width: 20, height: 20},
     {x: 500, y: 400, width: 20, height: 20},
-
+    {x: 550, y: 270, width: 20, height: 150},
+    {x: 500, y: 320, width: 20, height: 20},
   ];
 
   let startPoint = { x: 0, y: 0 };
@@ -40,7 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 점수와 플레이 시간 업데이트
     updateScoreAndTime();
-    
+
+    drawClearLine();
+    checkGameClear();
+
     drawPlayerAndPlatforms();
     if (isDragging && canJump) {
       drawPowerLine();
@@ -69,6 +75,32 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillText(`자산: ${Math.floor(score)}`, 10, 30);
     ctx.fillText(`투자기간: ${playTime.toFixed(2)}s`, 10, 60);
   } 
+
+  function drawClearLine() {
+    ctx.beginPath();
+    ctx.moveTo(0, clearLineHeight);
+    ctx.lineTo(canvas.width, clearLineHeight);
+    ctx.fillText(`경제적자유`, 10, 230);
+    ctx.strokeStyle = 'black'; // 클리어 선의 색상
+    ctx.stroke();
+  }
+
+  function checkGameClear() {
+    if (player.y <= clearLineHeight) {
+        // 게임 클리어 처리
+        gameRunning = false; // 게임을 멈춤
+        displayClearInfo(); // 클리어 정보 표시
+    }
+  }
+
+  function displayClearInfo() {
+    ctx.fillStyle = 'black';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText("경제적자유 달성!", canvas.width / 2, canvas.height / 2);
+    ctx.fillText(`자산: ${Math.floor(score)}`, canvas.width / 2, canvas.height / 2 + 30);
+    ctx.fillText(`투자기간: ${playTime.toFixed(2)}s`, canvas.width / 2, canvas.height / 2 + 60);
+  }
 
   function drawPlayerAndPlatforms() {
     ctx.fillStyle = 'blue';
