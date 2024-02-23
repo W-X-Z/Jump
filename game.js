@@ -180,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const point = getPoint(event);
         startPoint = { x: point.x, y: point.y };
         endPoint = startPoint; // 초기화
+        event.preventDefault(); // 기본 동작 방지
     }
   }
 
@@ -187,6 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isDragging && canJump) {
           const point = getPoint(event);
           endPoint = { x: point.x, y: point.y };
+          event.preventDefault(); // 드래그 중 스크롤 등의 기본 동작 방지
       }
   }
 
@@ -197,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const dy = endPoint.y - startPoint.y;
 
           if (dy < 0) { // 아래로 드래그하는 경우, 점프 실행 안함
+              event.preventDefault(); // 여기도 기본 동작 방지가 필요하면 추가
               return;
           }
 
@@ -207,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
               player.velocityY = - dy / dragDistance * jumpPower;
               canJump = false;
           }
+          event.preventDefault(); // 기본 동작 방지
       }
   }
 
