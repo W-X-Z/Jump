@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let gravity = 0.5;
   let friction = 0.9;
 
-  let gameRunning = treu;
+  let gameRunning = true;
   let score = 0;
   let playTime = 0;
   let startTime = Date.now()
