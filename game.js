@@ -10,6 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let gravity = 0.5;
   let friction = 0.9;
 
+  let score = 0;
+  let playTime = 0;
+  let startTime = Date.now()
+
   let platforms = [
     {x: 100, y: 1120, width: 100, height: 80},
     {x: 200, y: 1030, width: 150, height: 20},
@@ -33,14 +37,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 점수와 플레이 시간 업데이트
+    updateScoreAndTime();
+    
     drawPlayerAndPlatforms();
     if (isDragging && canJump) {
       drawPowerLine();
     }
     updatePlayerPosition();
     checkCollisions();
+
+    // 점수와 플레이 시간 표시
+    displayScoreAndTime();
+
     requestAnimationFrame(gameLoop);
   }
+
+  function updateScoreAndTime() {
+    // 점수 업데이트 (예시: 최대 높이 - 현재 플레이어의 y 위치)
+    score = canvas.height - player.y-20;
+
+    // 플레이 시간 업데이트
+    playTime = (Date.now() - startTime) / 1000; // 초 단위로 변환
+  }
+
+  function displayScoreAndTime() {
+    ctx.fillStyle = 'black';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(`자산: ${Math.floor(score)}`, 10, 30);
+    ctx.fillText(`투자기간: ${playTime.toFixed(2)}s`, 10, 60);
+  } 
 
   function drawPlayerAndPlatforms() {
     ctx.fillStyle = 'blue';
@@ -146,46 +174,63 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fill();
   }
 
-  // 터치 시작 이벤트
-  canvas.addEventListener('touchstart', (e) => {
-      if (canJump) {
-          isDragging = true;
-          const touch = e.touches[0]; // 첫 번째 터치 포인트
-          startPoint = { x: touch.clientX - canvas.offsetLeft, y: touch.clientY - canvas.offsetTop };
-          endPoint = startPoint; // 초기화
-          e.preventDefault(); // 기본 터치 이벤트 방지
-      }
-  }, { passive: false });
-  
-  // 터치 이동 이벤트
-  canvas.addEventListener('touchmove', (e) => {
+  function handleStart(event) {
+    if (canJump) {
+        isDragging = true;
+        const point = getPoint(event);
+        startPoint = { x: point.x, y: point.y };
+        endPoint = startPoint; // 초기화
+    }
+  }
+
+  function handleMove(event) {
       if (isDragging && canJump) {
-          const touch = e.touches[0]; // 첫 번째 터치 포인트
-          endPoint = { x: touch.clientX - canvas.offsetLeft, y: touch.clientY - canvas.offsetTop };
-          e.preventDefault(); // 기본 스크롤 등의 행동 방지
+          const point = getPoint(event);
+          endPoint = { x: point.x, y: point.y };
       }
-  }, { passive: false });
-  
-  // 터치 종료 이벤트
-  canvas.addEventListener('touchend', (e) => {
+  }
+
+  function handleEnd(event) {
       if (isDragging && canJump) {
           isDragging = false;
-          let dx = endPoint.x - startPoint.x;
-          let dy = endPoint.y - startPoint.y;
-  
-          if (dy < 0) {
-              return; // 아래로 드래그하는 경우, 여기서 함수 실행을 중단
+          const dx = endPoint.x - startPoint.x;
+          const dy = endPoint.y - startPoint.y;
+
+          if (dy < 0) { // 아래로 드래그하는 경우, 점프 실행 안함
+              return;
           }
-  
-          let dragDistance = Math.sqrt(dx * dx + dy * dy);
+
+          const dragDistance = Math.sqrt(dx * dx + dy * dy);
           if (dragDistance > 5) {
-              let jumpPower = Math.min(dragDistance / 10, 20);
-              player.velocityX = -dx / dragDistance * jumpPower;
-              player.velocityY = -Math.abs(dy / dragDistance) * jumpPower;
+              const jumpPower = Math.min(dragDistance / 10, 20);
+              player.velocityX = - dx / dragDistance * jumpPower;
+              player.velocityY = - dy / dragDistance * jumpPower;
               canJump = false;
           }
       }
-  });
+  }
+
+  function getPoint(event) {
+      let x, y;
+      if (event.type.startsWith('touch')) {
+          const touch = event.touches[0] || event.changedTouches[0];
+          x = touch.clientX - canvas.offsetLeft;
+          y = touch.clientY - canvas.offsetTop;
+      } else { // 마우스 이벤트 처리
+          x = event.clientX - canvas.offsetLeft;
+          y = event.clientY - canvas.offsetTop;
+      }
+      return { x, y };
+  }
+
+  canvas.addEventListener('mousedown', handleStart);
+  canvas.addEventListener('mousemove', handleMove);
+  canvas.addEventListener('mouseup', handleEnd);
+
+  canvas.addEventListener('touchstart', handleStart, { passive: false });
+  canvas.addEventListener('touchmove', handleMove, { passive: false });
+  canvas.addEventListener('touchend', handleEnd, { passive: false });
+
 
   gameLoop();
 });
