@@ -166,20 +166,21 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   }, { passive: false });
   
-  // 터치 종료 이벤트
   canvas.addEventListener('touchend', (e) => {
       if (isDragging && canJump) {
           isDragging = false;
           let dx = endPoint.x - startPoint.x;
-          let dy = endPoint.y - startPoint.y;
-          
-          if (dy < 0) { // 위로 드래그 (점프 조건)
+          // 아래로 드래그한 거리를 양수로 계산
+          let dy = startPoint.y - endPoint.y; // 아래로 드래그 시 양수 값, 위로 점프
+  
+          if (dy > 0) { // 아래로 드래그 (점프 조건)
               let dragDistance = Math.sqrt(dx * dx + dy * dy);
               if (dragDistance > 5) {
                   let jumpPower = Math.min(dragDistance / 10, 30); // 점프 파워 제한
                   player.velocityX = dx / dragDistance * jumpPower;
-                  player.velocityY = dy / dragDistance * jumpPower; // 점프 방향 계산
-                  canJump = false;
+                  player.velocityY = -Math.abs(dy / dragDistance) * jumpPower; // 항상 위로 점프
+  
+                  canJump = false; // 점프 후 재점프 불가능 상태로 설정
               }
           }
       }
