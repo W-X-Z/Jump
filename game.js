@@ -38,25 +38,27 @@ document.addEventListener('DOMContentLoaded', () => {
   let endPoint = { x: 0, y: 0 };
 
   function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if(gameRunning){
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 점수와 플레이 시간 업데이트
-    updateScoreAndTime();
-
-    drawClearLine();
-    checkGameClear();
-
-    drawPlayerAndPlatforms();
-    if (isDragging && canJump) {
-      drawPowerLine();
+      // 점수와 플레이 시간 업데이트
+      updateScoreAndTime();
+  
+      drawClearLine();
+      checkGameClear();
+  
+      drawPlayerAndPlatforms();
+      if (isDragging && canJump) {
+        drawPowerLine();
+      }
+      updatePlayerPosition();
+      checkCollisions();
+  
+      // 점수와 플레이 시간 표시
+      displayScoreAndTime();
+  
+      requestAnimationFrame(gameLoop);
     }
-    updatePlayerPosition();
-    checkCollisions();
-
-    // 점수와 플레이 시간 표시
-    displayScoreAndTime();
-
-    requestAnimationFrame(gameLoop);
   }
 
   function updateScoreAndTime() {
