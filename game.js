@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
+  
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-  canvas.width = 600;
+  canvas.width = 540;
   canvas.height = 1200; // 세로 길이 증가
 
   let isDragging = false;
@@ -16,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let startTime = Date.now()
 
   let clearLineHeight = 240; // 캔버스 상단에서 100px 아래에 클리어 선을 설정
+
+  let camera = { x: 0, y: 0 };
 
   let platforms = [
     {x: 100, y: 1120, width: 100, height: 80},
@@ -40,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function gameLoop() {
     if(gameRunning){
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // 점수와 플레이 시간 업데이트
@@ -52,6 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isDragging && canJump) {
         drawPowerLine();
       }
+
+      updateCamera();
       updatePlayerPosition();
       checkCollisions();
   
@@ -80,9 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function drawClearLine() {
     ctx.beginPath();
-    ctx.moveTo(0, clearLineHeight);
-    ctx.lineTo(canvas.width, clearLineHeight);
-    ctx.fillText(`경제적자유`, 10, 230);
+    ctx.moveTo(0, clearLineHeight + camera.y);
+    ctx.lineTo(canvas.width, clearLineHeight + camera.y);
+    ctx.fillText(`경제적자유`, 10, 230 + camera.y);
     ctx.strokeStyle = 'black'; // 클리어 선의 색상
     ctx.stroke();
   }
@@ -93,6 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
         gameRunning = false; // 게임을 멈춤
         displayClearInfo(); // 클리어 정보 표시
     }
+  }
+
+  function updateCamera() {
+    camera.x = canvas.width / 2 - player.x - player.width / 2;
+    camera.y = canvas.height / 2 - player.y - player.height / 2;
   }
 
   function displayClearInfo() {
@@ -106,10 +117,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function drawPlayerAndPlatforms() {
     ctx.fillStyle = 'blue';
-    ctx.fillRect(player.x, player.y, player.width, player.height);
+    ctx.fillRect(player.x + camera.x, player.y + camera.y, player.width, player.height);
     platforms.forEach(platform => {
-      ctx.fillStyle = 'grey';
-      ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+        ctx.fillStyle = 'grey';
+        ctx.fillRect(platform.x + camera.x, platform.y + camera.y, platform.width, platform.height);
     });
   }
 
@@ -160,17 +171,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function drawPowerLine() {
-    // 캐릭터의 중심을 계산합니다.
-    let characterCenterX = player.x + player.width / 2;
-    let characterCenterY = player.y + player.height / 2;
+    // 화살표 그리기에 카메라 오프셋 적용
+    let characterScreenX = player.x + camera.x + player.width / 2;
+    let characterScreenY = player.y + camera.y + player.height / 2;
 
     // 드래그 방향을 계산합니다.
     let dx = endPoint.x - startPoint.x;
     let dy = endPoint.y - startPoint.y;
+    
     // 드래그 방향이 아래로 향하는 경우 함수 실행을 중단
     if (dy < 0) {
-      return; // 화살표를 그리지 않음
+        return; // 화살표를 그리지 않음
     }
+
     let angle = Math.atan2(dy, dx) + Math.PI; // 드래그 방향의 반대 방향을 가리키도록 각도 조정
 
     // 화살표의 길이를 제한합니다.
@@ -179,12 +192,12 @@ document.addEventListener('DOMContentLoaded', () => {
     dragDistance = Math.min(dragDistance, maxDragDistance);
 
     // 선(화살표)의 끝점을 조정합니다.
-    let adjustedEndPointX = characterCenterX + Math.cos(angle) * dragDistance;
-    let adjustedEndPointY = characterCenterY + Math.sin(angle) * dragDistance;
+    let adjustedEndPointX = characterScreenX + Math.cos(angle) * dragDistance;
+    let adjustedEndPointY = characterScreenY + Math.sin(angle) * dragDistance;
 
     // 화살표 그리기 설정
     ctx.beginPath();
-    ctx.moveTo(characterCenterX, characterCenterY);
+    ctx.moveTo(characterScreenX, characterScreenY);
     ctx.lineTo(adjustedEndPointX, adjustedEndPointY);
 
     // 선 스타일 설정
@@ -268,7 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
   canvas.addEventListener('touchstart', handleStart, { passive: false });
   canvas.addEventListener('touchmove', handleMove, { passive: false });
   canvas.addEventListener('touchend', handleEnd, { passive: false });
-
 
   gameLoop();
 });
