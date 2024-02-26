@@ -188,12 +188,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 화살표의 길이를 제한합니다.
     let dragDistance = Math.sqrt(dx * dx + dy * dy);
-    let maxDragDistance = 100; // 최대 드래그 거리로 선의 길이를 제한할 수 있습니다.
+    let maxDragDistance = 50; // 최대 드래그 거리로 선의 길이를 제한할 수 있습니다.
+    let powerRatio = dragDistance / maxDragDistance; // 드래그 거리와 최대 드래그 거리의 비율
+    let jumpPower = Math.min(powerRatio * 20, 20); // 실제 점프 파워 계산
     dragDistance = Math.min(dragDistance, maxDragDistance);
 
+    let adjustedDragDistance = jumpPower * (maxDragDistance / 20);
+
     // 선(화살표)의 끝점을 조정합니다.
-    let adjustedEndPointX = characterScreenX + Math.cos(angle) * dragDistance;
-    let adjustedEndPointY = characterScreenY + Math.sin(angle) * dragDistance;
+    let adjustedEndPointX = characterScreenX + Math.cos(angle) * adjustedDragDistance;
+    let adjustedEndPointY = characterScreenY + Math.sin(angle) * adjustedDragDistance;
 
     // 화살표 그리기 설정
     ctx.beginPath();
@@ -251,13 +255,17 @@ document.addEventListener('DOMContentLoaded', () => {
           }
 
           const dragDistance = Math.sqrt(dx * dx + dy * dy);
-          if (dragDistance > 5) {
-              const jumpPower = Math.min(dragDistance / 10, 20);
-              player.velocityX = - dx / dragDistance * jumpPower;
-              player.velocityY = - dy / dragDistance * jumpPower;
-              canJump = false;
-          }
-          event.preventDefault(); // 기본 동작 방지
+          const maxDragDistance = 50; // 최대 드래그 거리 설정
+          const maxJumpPower = 20; // 최대 점프 파워 설정
+          const powerRatio = Math.min(dragDistance / maxDragDistance, 1); // 드래그 거리를 최대 드래그 거리로 나눈 비율을 계산하고, 1을 초과하지 않도록 합니다.
+          const jumpPower = powerRatio * maxJumpPower; // 실제 점프 파워 계산
+  
+          // 점프 파워를 바탕으로 플레이어의 수평 및 수직 속도 설정
+          player.velocityX = -dx / dragDistance * jumpPower;
+          player.velocityY = -dy / dragDistance * jumpPower;
+          canJump = false;
+  
+          event.preventDefault();
       }
   }
 
